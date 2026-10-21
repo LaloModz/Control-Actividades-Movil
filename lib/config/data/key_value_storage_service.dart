@@ -11,6 +11,7 @@ abstract class KeyValueStorageService {
   Future<void> saveUserName<T>(T value);
   Future<void> saveAuthType<T>(T value);
   Future<void> saveEmail<T>(T value);
+  Future<void> saveUserUuid<T>(T value);
 
   Future<int> getId();
   Future<String> getRole();
@@ -18,6 +19,7 @@ abstract class KeyValueStorageService {
   Future<String> getUserName();
   Future<String> getAuthType();
   Future<String> getEmail();
+  Future<String> getUserUuid();
 
   Future<bool> removeId();
   Future<bool> removeRole();
@@ -25,4 +27,5 @@ abstract class KeyValueStorageService {
   Future<bool> removeUserName();
   Future<bool> removeAuthType();
   Future<bool> removeEmail();
+  Future<bool> removeUserUuid();
 }

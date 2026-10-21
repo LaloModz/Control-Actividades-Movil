@@ -80,13 +80,13 @@ class SubjectCard extends ConsumerWidget {
   }
 
 
-    void _showEditDialog(BuildContext context, Subject subjectData) {
+    void _showEditDialog(BuildContext pageContext, Subject subjectData) {
       final nameController = TextEditingController(text: subjectData.nombreMateria);
       final descriptionController = TextEditingController(text: subjectData.descripcion);
 
       showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
+        context: pageContext,
+        builder: (dialogContext) => AlertDialog(
           title: Text('Editar materia', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -113,17 +113,27 @@ class SubjectCard extends ConsumerWidget {
                 final newName = nameController.text.trim();
                 final newDescription = descriptionController.text.trim();
                 if (newName.isEmpty) {
-                  ErrorDialog.show(context, message: "El nombre no puede estar vacío");
+                  ErrorDialog.show(dialogContext, message: "El nombre no puede estar vacío");
                   return;
                 }
-                Navigator.of(context).pop();
-                bool success = await ref.read(subjectsProvider.notifier).updateSubject(subjectData.materiaId!, newName, newDescription);
+
+                final success = await ref.read(subjectsProvider.notifier).updateSubject(
+                  subjectData.materiaId!,
+                  newName,
+                  newDescription,
+                );
+
+                if (!pageContext.mounted) return;
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+
                 if (success) {
-                  SuccessDialog.show(context, message: "Materia actualizada exitosamente");
+                  SuccessDialog.show(pageContext, message: "Materia actualizada exitosamente");
                   // Refrescar la lista de grupos
                   await ref.read(groupsProvider.notifier).getGroupsSubjects();
                 } else {
-                  ErrorDialog.show(context, message: "Error al actualizar la materia");
+                  ErrorDialog.show(pageContext, message: "Error al actualizar la materia");
                 }
               },
               child: Text('Actualizar', style: TextStyle(color: Colors.white)),

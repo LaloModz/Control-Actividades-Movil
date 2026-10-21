@@ -31,20 +31,20 @@ class Subject {
       List<Map<String, dynamic>> subjectsJson) {
     return subjectsJson.map((e) {
       return Subject(
-        materiaId: e['MateriaId'],
-        nombreMateria: e['NombreMateria'],
-        descripcion: e['Descripcion'],
-        codigoAcceso: e['CodigoAcceso'],
+        materiaId: e['materiaId'],
+        nombreMateria: e['nombreMateria'],
+        descripcion: e['descripcion'],
+        codigoAcceso: e['codigoAcceso'],
         actividades: (e['Actividades'] as List<dynamic>? ?? [])
             .map((a) => Activity(
-                  activityId: a['ActividadId'],
-                  nombreActividad: a['NombreActividad'],
-                  descripcion: a['Descripcion'],
+                  activityId: a['actividadId'],
+                  nombreActividad: a['nombreActividad'],
+                  descripcion: a['descripcion'],
                   //tipoActividadId: a['TipoActividadId'],
                   fechaCreacion: formatDate(a['FechaCreacion']),
                   fechaLimite: formatDate(a['FechaLimite']),
                   puntaje: a['Puntaje'] != null ? (a['Puntaje'] as num).toDouble() : null,
-                  materiaId: a['MateriaId'],
+                  materiaId: a['materiaId'],
                   permitirEntregasTarde: a['PermitirEntregasTarde'] ?? false,
                   tieneLimiteEntregas: a['TieneLimiteEntregas'] ?? false,
                   limiteEntregasPorAlumno: a['LimiteEntregasPorAlumno'] ?? 0,

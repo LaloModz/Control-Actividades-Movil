@@ -1,6 +1,7 @@
 class AuthUser {
   final int userId;
   final String userName;
+  final String userUuid;
   final String email;
   final String role;
   final String token;
@@ -13,6 +14,7 @@ class AuthUser {
       required this.email,
       required this.role,
       required this.token,
+      this.userUuid = '',
       this.estaAutorizado,
       this.requiereDatosAdicionales});
 

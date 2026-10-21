@@ -90,10 +90,11 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
 
       final user = await authRepository.login(email, password);
 
-      if (user.estaAutorizado == AuthorizationUserStatus.pending.value) {
-        await storageService.saveEmail(email);
-        state = state.copyWith(isPendingAuthorizationUser: true);
-      } else if (user.estaAutorizado == AuthorizationUserStatus.denied.value) {
+      // if (user.estaAutorizado == AuthorizationUserStatus.pending.value) {
+      //   await storageService.saveEmail(email);
+      //   state = state.copyWith(isPendingAuthorizationUser: true);
+      // } else 
+      if (user.estaAutorizado == AuthorizationUserStatus.denied.value) {
         throw WrongCredentials(errorMessage: "Usuario denegado");
       } else if (user.estaAutorizado ==
           AuthorizationUserStatus.authorized.value) {
@@ -230,8 +231,13 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   }
 
   void badResponseDialog([String? errorMessage, String? errorComment]) {
+    final message = [
+      errorMessage,
+      if (errorComment != null && errorComment.trim().isNotEmpty) errorComment,
+    ].whereType<String>().join('\n');
+
     state = state.copyWith(
-        errorMessage: errorMessage,
+        errorMessage: message,
         errorComment: errorComment,
         errorHandlingStyle: ErrorHandlingStyle.dialog);
   }
@@ -310,6 +316,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     await _saveUserDataKeyValue(
         user.token, user.userId, user.role, user.userName, authType);
 
+    await storageService.saveUserUuid(user.userUuid);
+
     List<Group> lsGroups = await groups.getGroupsSubjects();
 
     List<Subject> lsSubjectsWithoutGroup =
@@ -373,10 +381,10 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       List<Subject> lsSubjectsWithoutGroup,
       AuthCallers caller,
       AuthenticatedType authType) async {
-
-
-    if (authType == AuthenticatedType.auth && caller != AuthCallers.checkAuthStatus) {
-      debugPrint('Intentando guardar usuario offline: ${user.userId}, ${user.userName}, ${user.email}, ${user.activeDueDate}, ${user.role}');
+    if (authType == AuthenticatedType.auth &&
+        caller != AuthCallers.checkAuthStatus) {
+      debugPrint(
+          'Intentando guardar usuario offline: ${user.userId}, ${user.userName}, ${user.email}, ${user.activeDueDate}, ${user.role}');
       try {
         await authUserOffline.deleteUser();
         await authUserOffline.insertUser(user.userId, user.userName, user.email,
@@ -407,22 +415,25 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
         await activityOffline.getAllPendingSubmissions();
 
     if (lsSubmissionsPending.isNotEmpty) {
-      debugPrint("🔄 [SYNC] Iniciando envío de ${lsSubmissionsPending.length} entregas pendientes al servidor.");
+      debugPrint(
+          "🔄 [SYNC] Iniciando envío de ${lsSubmissionsPending.length} entregas pendientes al servidor.");
       for (var submission in lsSubmissionsPending) {
         int activityId = submission.activityId ?? -1;
         if (activityId != -1) {
           String answer = submission.answer ?? "";
-          
+
           // Llama al método de envío ONLINE
           bool submissionSentSuccess = await sendSubmission(activityId, answer);
 
           // Si el envío es exitoso, borra el registro local
           if (submissionSentSuccess) {
-            debugPrint("✅ [SYNC] Entrega ${submission.submissionId} para actividad $activityId enviada con éxito. Eliminando de la cola local.");
+            debugPrint(
+                "✅ [SYNC] Entrega ${submission.submissionId} para actividad $activityId enviada con éxito. Eliminando de la cola local.");
             int submissionId = submission.submissionId;
             await activityOffline.deleteSubmissionOfflineSent(submissionId);
           } else {
-            debugPrint("❌ [SYNC] Falló el envío de la entrega ${submission.submissionId} para la actividad $activityId. Se reintentará en el próximo inicio de sesión.");
+            debugPrint(
+                "❌ [SYNC] Falló el envío de la entrega ${submission.submissionId} para la actividad $activityId. Se reintentará en el próximo inicio de sesión.");
           }
         }
       }
@@ -446,7 +457,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       debugPrint('Resultado de getUser() offline: $dbUser');
       if (dbUser.isNotEmpty) {
         final userOffline = AuthOfflineUser.userOffilineJsonToEntity(dbUser);
-        debugPrint('Usuario recuperado offline: ${userOffline.userId}, ${userOffline.userName}, ${userOffline.email}, ${userOffline.activeDueDate}, ${userOffline.role}');
+        debugPrint(
+            'Usuario recuperado offline: ${userOffline.userId}, ${userOffline.userName}, ${userOffline.email}, ${userOffline.activeDueDate}, ${userOffline.role}');
         final userDateLimit = DateTime.parse(userOffline.activeDueDate);
 
         if (dateNow.isBefore(userDateLimit)) {
@@ -510,7 +522,11 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     //& Procesar materias en lotes para evitar saturar la app
     const int batchSize = 5; // Límite de materias por lote
     for (int i = 0; i < allSubjects.length; i += batchSize) {
-      final batch = allSubjects.sublist(i, i + batchSize > allSubjects.length ? allSubjects.length : i + batchSize);
+      final batch = allSubjects.sublist(
+          i,
+          i + batchSize > allSubjects.length
+              ? allSubjects.length
+              : i + batchSize);
       List<Future<void>> batchFutures = [];
 
       for (var subject in batch) {
@@ -524,12 +540,19 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
               for (var act in subject.actividades ?? []) {
                 final activity = act as Activity;
                 final activityId = activity.activityId;
-                submissionFutures.add(getSubmissionsOfflineCallback(activityId!));
+                submissionFutures
+                    .add(getSubmissionsOfflineCallback(activityId!));
               }
               //& Procesar submissions en lotes de 10 para limitar concurrencia
               const int submissionBatchSize = 10;
-              for (int j = 0; j < submissionFutures.length; j += submissionBatchSize) {
-                final subBatch = submissionFutures.sublist(j, j + submissionBatchSize > submissionFutures.length ? submissionFutures.length : j + submissionBatchSize);
+              for (int j = 0;
+                  j < submissionFutures.length;
+                  j += submissionBatchSize) {
+                final subBatch = submissionFutures.sublist(
+                    j,
+                    j + submissionBatchSize > submissionFutures.length
+                        ? submissionFutures.length
+                        : j + submissionBatchSize);
                 await Future.wait(subBatch);
               }
             } catch (error) {
@@ -738,8 +761,9 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     await storageService.removeRole();
     await storageService.removeToken();
     await storageService.removeUserName();
-
+    await storageService.removeUserUuid();
   }
+
 
   Future<void> _getGroupsAndSubjects(
       AuthCallers caller,
@@ -760,7 +784,11 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     //& Procesar materias en lotes para evitar saturar la app
     const int batchSize = 5; // Límite de materias por lote
     for (int i = 0; i < allSubjects.length; i += batchSize) {
-      final batch = allSubjects.sublist(i, i + batchSize > allSubjects.length ? allSubjects.length : i + batchSize);
+      final batch = allSubjects.sublist(
+          i,
+          i + batchSize > allSubjects.length
+              ? allSubjects.length
+              : i + batchSize);
       List<Future<void>> batchFutures = [];
 
       for (var subject in batch) {
@@ -794,8 +822,14 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
             }
             //& Procesar submissions en lotes de 10 para limitar concurrencia
             const int submissionBatchSize = 10;
-            for (int j = 0; j < submissionFutures.length; j += submissionBatchSize) {
-              final subBatch = submissionFutures.sublist(j, j + submissionBatchSize > submissionFutures.length ? submissionFutures.length : j + submissionBatchSize);
+            for (int j = 0;
+                j < submissionFutures.length;
+                j += submissionBatchSize) {
+              final subBatch = submissionFutures.sublist(
+                  j,
+                  j + submissionBatchSize > submissionFutures.length
+                      ? submissionFutures.length
+                      : j + submissionBatchSize);
               await Future.wait(subBatch);
             }
           }).catchError((error) {

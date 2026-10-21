@@ -36,35 +36,39 @@ class Group {
 
     for (var group in groupsAndSubject) {
       List<Subject> materias =
-          (group['Materias'] as List? ?? []).map((materia) {
+        ((group['Materias'] ?? group['materias']) as List? ?? []).map((materia) {
         List<Activity> actividades =
-            (materia['Actividades'] as List? ?? []).map((actividad) {
+        ((materia['Actividades'] ?? materia['actividades']) as List? ?? []).map((actividad) {
           return Activity(
-              activityId: actividad['ActividadId'],
-              nombreActividad: actividad['NombreActividad'],
-              descripcion: actividad['Descripcion'],
-              tipoActividadId: actividad['TipoActividadId'],
-              fechaCreacion: formatDate(actividad['FechaCreacion']),
-              fechaLimite: formatDate(actividad['FechaLimite']),
-              puntaje: actividad['Puntaje'],
-              materiaId: materia['MateriaId']); // Usar el materiaId del Subject padre
+          activityId:
+            actividad['ActividadId'] ?? actividad['actividadId'],
+          nombreActividad: (actividad['NombreActividad'] ??
+              actividad['nombreActividad']) as String? ??
+            '',
+          descripcion: actividad['Descripcion'] as String? ?? actividad['descripcion'] as String? ?? '',
+          tipoActividadId: actividad['TipoActividadId'] ?? actividad['tipoActividadId'],
+          fechaCreacion: formatDate((actividad['FechaCreacion'] ?? actividad['fechaCreacion']) as String? ?? ''),
+          fechaLimite: formatDate((actividad['FechaLimite'] ?? actividad['fechaLimite']) as String? ?? ''),
+          puntaje: actividad['Puntaje'] ?? actividad['puntaje'],
+          materiaId: materia['MateriaId'] ?? materia['materiaId']);
         }).toList();
 
         return Subject(
-          materiaId: materia['MateriaId'],
-          nombreMateria: materia['NombreMateria'],
-          descripcion: materia['Descripcion'] ?? "",
-          codigoColor: materia['CodigoColor'] ?? "",
-          codigoAcceso: materia['CodigoAcceso'] ?? "",
+        materiaId: materia['MateriaId'] ?? materia['materiaId'],
+        nombreMateria: (materia['NombreMateria'] ??
+            materia['nombreMateria']) as String? ?? '',
+        descripcion: (materia['Descripcion'] ?? materia['descripcion']) as String? ?? '',
+        codigoColor: (materia['CodigoColor'] ?? materia['codigoColor']) as String? ?? '',
+        codigoAcceso: (materia['CodigoAcceso'] ?? materia['codigoAcceso']) as String? ?? '',
           actividades: actividades,
         );
       }).toList();
 
       groups.add(Group(
-        grupoId: group['GrupoId'],
-        nombreGrupo: group['NombreGrupo'],
-        descripcion: group['Descripcion'] ?? "",
-        codigoAcceso: group['CodigoAcceso'] ?? "",
+      grupoId: group['GrupoId'] ?? group['grupoId'],
+      nombreGrupo: (group['NombreGrupo'] ?? group['nombreGrupo']) as String? ?? '',
+      descripcion: (group['Descripcion'] ?? group['descripcion']) as String? ?? '',
+      codigoAcceso: (group['CodigoAcceso'] ?? group['codigoAcceso']) as String? ?? '',
         // codigoColor: mainColorToHex,
         materias: materias,
       ));

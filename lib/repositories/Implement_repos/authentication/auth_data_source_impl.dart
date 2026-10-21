@@ -7,9 +7,11 @@ import 'package:aprende_mas/config/utils/packages.dart';
 
 class AuthDataSourceImpl implements AuthDataSource {
   final storageService = KeyValueStorageServiceImpl();
+
   @override
   Future<AuthUser> login(String email, String password) async {
-    const uri = "/Login/InicioSesionUsuario";
+    const uri = "/AccountApi/InicioSesionUsuario";
+    // "/AccountApi/InicioSesionUsuario"
     try {
       final res =
           await dio.post(uri, data: {'correo': email, 'clave': password});
@@ -37,7 +39,7 @@ class AuthDataSourceImpl implements AuthDataSource {
       {required String name,
       required String lastname,
       required String secondLastname,
-      required String password,
+      required String password, 
       required String role,
       required String fcmToken}) async {
     try {
@@ -96,8 +98,7 @@ class AuthDataSourceImpl implements AuthDataSource {
   Future<bool> resetPasswordRequest(String email) async {
     const uri = "/Login/ForgotPassword";
     try {
-      final resetPasswordStatus =
-          await dio.post(uri, data: {"Email": email});
+      final resetPasswordStatus = await dio.post(uri, data: {"Email": email});
 
       if (resetPasswordStatus.statusCode == 200) {
         return true;
@@ -173,18 +174,19 @@ class AuthDataSourceImpl implements AuthDataSource {
   Future<bool> verifyExistingFcmToken(
       int id, String fcmToken, String role) async {
     try {
-      const uri = "/Login/VerificarTokenFcm";
+      const uri = "/AccountApi/VerificarTokenFcm";
       // final id = await storageService.getId();
       // final role = await storageService.getRole();
 
-      final res = await dio.post(uri,
-          queryParameters: {"id": id, "fcmToken": fcmToken, "role": role});
+      final res = await dio
+          .post(uri, data: {"Id": id, "fcmToken": fcmToken, "role": role});
 
       if (res.statusCode == 200) {
         return true;
       }
       return false;
     } catch (e) {
+      debugPrint(e.toString());
       throw FcmTokenVerificatioFailed(
           message: "No se pudo verificar el token.");
     }
@@ -237,7 +239,8 @@ class AuthDataSourceImpl implements AuthDataSource {
         data: '"$email"',
       );
 
-      debugPrint('🔍 verifyEmailSignin - StatusCode recibido: ${res.statusCode}');
+      debugPrint(
+          '🔍 verifyEmailSignin - StatusCode recibido: ${res.statusCode}');
       debugPrint('🔍 verifyEmailSignin - Response data: ${res.data}');
 
       if (res.statusCode == 200) {
@@ -247,7 +250,9 @@ class AuthDataSourceImpl implements AuthDataSource {
 
       // Si no es 200, verificar si es error conocido
       final extensions = res.data['Extensions'];
-      if (res.statusCode == 400 && extensions != null && extensions['errorCode'] == 1002) {
+      if (res.statusCode == 400 &&
+          extensions != null &&
+          extensions['errorCode'] == 1002) {
         final errorMessage = extensions['errorMessage'];
         final errorComment = extensions['errorComment'];
         debugPrint('❌ verifyEmailSignin - Email ya registrado: $errorMessage');
@@ -255,16 +260,20 @@ class AuthDataSourceImpl implements AuthDataSource {
             errorMessage: errorMessage, errorComment: errorComment);
       }
 
-      debugPrint('⚠️ verifyEmailSignin - StatusCode inesperado: ${res.statusCode}');
+      debugPrint(
+          '⚠️ verifyEmailSignin - StatusCode inesperado: ${res.statusCode}');
       throw UncontrolledError(message: 'Respuesta inesperada del servidor');
     } on DioException catch (e) {
-      debugPrint('🔍 verifyEmailSignin - DioException - StatusCode: ${e.response?.statusCode}');
-      debugPrint('🔍 verifyEmailSignin - DioException - Response Data: ${e.response?.data}');
+      debugPrint(
+          '🔍 verifyEmailSignin - DioException - StatusCode: ${e.response?.statusCode}');
+      debugPrint(
+          '🔍 verifyEmailSignin - DioException - Response Data: ${e.response?.data}');
       if (e.response?.statusCode == 400) {
         final extensions = e.response?.data['Extensions'];
         final errorMessage = extensions?['errorMessage'];
         final errorComment = extensions?['errorComment'];
-        debugPrint('✅ Lanzando InvalidEmailSignin desde DioException: $errorMessage');
+        debugPrint(
+            '✅ Lanzando InvalidEmailSignin desde DioException: $errorMessage');
         throw InvalidEmailSignin(
             errorMessage: errorMessage, errorComment: errorComment);
       }

@@ -11,13 +11,15 @@ class SubjectsDataSourceImpl implements SubjectsDataSource {
   @override
   Future<List<Subject>> getSubjectsWithoutGroup() async {
     try {
-      final id = await storageService.getId();
+      final uuid = await storageService.getUserUuid();
       final role = await storageService.getRole();
+
+      final id = await storageService.getId();
       List<Map<String, dynamic>> resList = [];
 
       if (role == cn.getRoleTeacherName) {
-        const uri = "/Materias/ObtenerMateriasDocente";
-        debugPrint("🔍 [LOGIN] Solicitando materias del docente: $uri?docenteId=$id");
+        const uri = "/MateriasApi/ObtenerMateriasDocente";
+        debugPrint("🔍 [LOGIN] Solicitando materias del docente: $uri?docenteId=$uuid");
         final res = await dio.get(
           uri,
           queryParameters: {'docenteId': id},
@@ -34,11 +36,11 @@ class SubjectsDataSourceImpl implements SubjectsDataSource {
           resList = [];
         }
       } else if (role == cn.getRoleStudentName) {
-        const uri = "/Materias/ObtenerMateriasAlumno";
-        debugPrint("🔍 [LOGIN] Solicitando materias del alumno: $uri?alumnoId=$id");
+        const uri = "/MateriasApi/ObtenerMateriasAlumno";
+        debugPrint("🔍 [LOGIN] Solicitando materias del alumno: $uri?alumnoId=$uuid");
         final res = await dio.get(
           uri,
-          queryParameters: {'alumnoId': id},
+          queryParameters: {'alumnoId': uuid},
           options: Options(validateStatus: (status) => true),
         );
         debugPrint("📥 [LOGIN] Respuesta alumno - Status: ${res.statusCode}");
@@ -168,7 +170,8 @@ class SubjectsDataSourceImpl implements SubjectsDataSource {
   @override
   Future<Subject> updateSubject(int subjectId, String name, String description) async {
     try {
-      const uri = "/Materias/UpdateSubject";
+      const uri = "/MateriasApi/ActualizarMateria";
+      
       final res = await dio.put(uri, data: {
         "MateriaId": subjectId,
         "NombreMateria": name,
@@ -177,15 +180,15 @@ class SubjectsDataSourceImpl implements SubjectsDataSource {
 
       if (res.statusCode == 200) {
         // Assuming the response contains the updated subject
-        final subjectMap = res.data as Map<String, dynamic>;
-        final updatedSubject = Subject(
-          materiaId: subjectMap['MateriaId'],
-          nombreMateria: subjectMap['NombreMateria'],
-          descripcion: subjectMap['Descripcion'] ?? "",
-          codigoAcceso: subjectMap['CodigoAcceso'] ?? "",
-          codigoColor: subjectMap['CodigoColor'] ?? "",
+        final subjectMap = Map<String, dynamic>.from(res.data);
+
+        return Subject(
+          materiaId: subjectMap['materiaId'] as int? ?? subjectId,
+          nombreMateria: subjectMap['nombreMateria'] as String? ?? name,
+          descripcion: subjectMap['descripcion'] as String? ?? description,
+          codigoAcceso: subjectMap['codigoAcceso'] as String?,
+          codigoColor: subjectMap['codigoColor'] as String?,
         );
-        return updatedSubject;
       } else {
         throw Exception("Error updating subject: ${res.statusCode}");
       }

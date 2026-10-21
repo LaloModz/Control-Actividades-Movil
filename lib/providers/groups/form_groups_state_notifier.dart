@@ -5,6 +5,7 @@ import 'package:aprende_mas/views/widgets/inputs/inputs.dart';
 import '../../models/models.dart';
 
 class FormGroupsStateNotifier extends StateNotifier<FormGroupsState> {
+  final Function(String, String) createGroupCallback;
   // final Function(String, String, Color) createGroupCallback;
   // final Function(String, String, Color, List<SubjectsRow>)
   //     createGroupSubjectsCallback;
@@ -14,6 +15,7 @@ class FormGroupsStateNotifier extends StateNotifier<FormGroupsState> {
   // final Function(int) addStudentsGroupCallback;
 
   FormGroupsStateNotifier({
+    required this.createGroupCallback,
     required this.createGroupSubjectsCallback,
     required this.updateGroupCallback,
     // required this.verifyEmailCallback,
@@ -43,16 +45,21 @@ class FormGroupsStateNotifier extends StateNotifier<FormGroupsState> {
   //       isValid: Formz.validate([state.groupName, state.colorCode]));
   // }
 
-  onFormSubmit() async {
+  Future<void> onFormSubmit() async {
     _touchEveryField();
     if (!state.isValid) return;
     state = state.copyWith(isPosting: true);
+
+    final bool res;
     if (state.subjectsRow.isNotEmpty) {
-      bool res = await createGroupSubjectsCallback(
+      res = await createGroupSubjectsCallback(
           state.groupName.value, state.description.value, state.subjectsRow);
-      state = state.copyWith(isFormPosted: res);
+    } else {
+      res = await createGroupCallback(
+          state.groupName.value, state.description.value);
     }
-    state = state.copyWith(isPosting: false);
+
+    state = state.copyWith(isFormPosted: res, isPosting: false);
   }
 
   _touchEveryField() {

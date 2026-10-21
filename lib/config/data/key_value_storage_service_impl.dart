@@ -77,6 +77,11 @@ class KeyValueStorageServiceImpl implements KeyValueStorageService {
   }
 
   @override
+  Future<void> saveUserUuid<T>(T value) async {
+    await _setKeyValue(cn.getKeyUserUuidName, value);
+  }
+
+  @override
   Future<int> getId() async {
     return await _getValue<int>(cn.getKeyIdName) ?? -1;
   }
@@ -104,6 +109,11 @@ class KeyValueStorageServiceImpl implements KeyValueStorageService {
   @override
   Future<String> getEmail() async {
     return await _getValue<String>(cn.getKeyEmailName) ?? "";
+  }
+
+  @override
+  Future<String> getUserUuid() async {
+    return await _getValue<String>(cn.getKeyUserUuidName) ?? "";
   }
 
   @override
@@ -136,5 +146,9 @@ class KeyValueStorageServiceImpl implements KeyValueStorageService {
     return await _removeKeyValue(cn.getKeyUserName);
   }
 
+  @override
+  Future<bool> removeUserUuid() async {
+    return await _removeKeyValue(cn.getKeyUserUuidName);
+  }
 
 }

@@ -238,7 +238,9 @@ class FormCreateGroup extends ConsumerWidget {
                     return;
                   }
                   await formCreateGroupNotifier.onFormSubmit();
-                  if (formCreateGroup.isFormPosted) {
+                  final updatedFormCreateGroup = ref.read(formGroupsProvider);
+
+                  if (updatedFormCreateGroup.isFormPosted) {
                     SuccessDialog.show(context, message: "Grupo creado exitosamente", onOkPressed: goRouterPop);
                   } else {
                     ErrorDialog.show(context, message: "Error al crear el grupo");

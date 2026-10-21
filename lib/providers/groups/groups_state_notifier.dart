@@ -64,6 +64,29 @@ class GroupsNotifier extends StateNotifier<GroupsState> {
     state = state.copyWith(lsGroupsCreated: groupsCreated);
   }
 
+  Future<bool> createGroup(String groupName,String description,
+) async {
+  try {
+    debugPrint("🆕 Creando grupo sin materias: $groupName");
+
+    final groups = await groupsRepository.createGroup(
+      groupName,
+      description,
+    );
+
+    if (groups.isNotEmpty) {
+      _setCreateGroupSubjects(groups);
+      await getGroupsSubjects();
+      return true;
+    }
+
+    return false;
+  } catch (e) {
+    debugPrint("❌ Error creando grupo sin materias: $e");
+    return false;
+  }
+}
+
   Future<bool> createGroupSubjects(
       String groupName,
       String description,

@@ -14,14 +14,15 @@ class GroupsDataSourceImpl implements GroupsDataSource {
     try {
       final id = await storageService.getId();
       final role = await storageService.getRole();
+      final userUuid = await storageService.getUserUuid();
       List<Map<String, dynamic>> resList = [];
 
       if (role == cn.getRoleTeacherName) {
-        const uri = "/Grupos/ObtenerGruposMateriasDocente";
-        debugPrint("🔍 [LOGIN] Solicitando grupos del docente: $uri?docenteId=$id");
+        const uri = "/GruposApi/ObtenerGrupos";
+        debugPrint("🔍 [LOGIN] Solicitando grupos del docente: $uri?docenteId=$userUuid");
         final res = await dio.get(
           uri,
-          queryParameters: {'docenteId': id},
+          queryParameters: {'docenteId': userUuid},
           options: Options(validateStatus: (status) => true),
         );
         debugPrint("📥 [LOGIN] Respuesta docente - Status: ${res.statusCode}");
@@ -150,34 +151,64 @@ class GroupsDataSourceImpl implements GroupsDataSource {
   //$CREAR GRUPO SIN MATERIAS
   @override
   Future<List<Group>> createGroup(
-      String nombreGrupo, String descripcion) async {
-    const uri = "/Grupos/CrearGrupo";
-    final id = await storageService.getId();
-    try {
-      final res = await dio.post(uri, data: {
-        "NombreGrupo": nombreGrupo,
-        "Descripcion": descripcion,
-        "DocenteId": id
-      });
-      if (res.statusCode == 200) {
-        final groups = Group.groupsJsonToEntityList(res.data);
-        return groups;
-      } else {
+      String nombreGrupo,
+      String descripcion
+      ) async {
+      const uri = "/GruposApi/CrearGrupo";
+      final uuid = await storageService.getUserUuid();
+      
+      try {
+        
+        final res = await dio.post(
+        uri,
+        queryParameters: {
+          "docenteId": uuid,
+        },
+        data: {
+          "NombreGrupo": nombreGrupo,
+          "Descripcion": descripcion,
+        },
+      );
+
+        debugPrint("📥 Crear grupo - Status: ${res.statusCode}");
+        debugPrint("📥 Crear grupo - Data: ${res.data}");
+
+        if (res.statusCode == 200 || res.statusCode == 201) {
+          if (res.data is Map<String, dynamic>) {
+            final data = res.data as Map<String, dynamic>;
+
+            return [
+              Group(
+                grupoId: data['grupoId'] as int?,
+                nombreGrupo: data['nombreGrupo'] as String? ?? '',
+                descripcion: data['descripcion'] as String?,
+              ),
+            ];
+          }
+
+          return [];
+        }
+
+        return [];
+      } catch (e) {
+        print(e);
         return [];
       }
-    } catch (e) {
-      print(e);
-      return [];
-    }
   }
 
   @override
   Future<Map<String, dynamic>> deleteGroup(int groupId) async {
     try {
-      const uri = "/Grupos/DeleteGroup";
+      const uri = "/GruposApi/EliminarGrupo";
+      final uuid = await storageService.getUserUuid();
       final fullUri = "$uri/$groupId";
+
       debugPrint("🔍 DELETE URL: $fullUri (groupId: $groupId)");
-      final response = await dio.delete(fullUri);
+
+      final response = await dio.delete(fullUri,
+          queryParameters: {"docenteId": uuid},
+        );
+
       debugPrint("🔍 Response status: ${response.statusCode}");
       debugPrint("🔍 Response data: ${response.data}");
 
@@ -214,19 +245,27 @@ class GroupsDataSourceImpl implements GroupsDataSource {
   Future<Group> updateGroup(int groupId, String groupName,
       String descriptionGroup) async {
     try {
-      const uri = "/Grupos/ActualizarGrupo";
-      final id = await storageService.getId();
-      final res = await dio.put(uri, data: {
+      const uri = "/GruposApi/EditarGrupo";
+      final uuid = await storageService.getUserUuid();
+
+      final res = await dio.put("$uri/$groupId", queryParameters: {
+        "docenteId": uuid
+      }, data: {
         "GrupoId": groupId,
         "NombreGrupo": groupName,
         "Descripcion": descriptionGroup,
-        "DocenteId": id
       });
 
-      if (res.statusCode == 200) {
-        final group = Group.groupToEntity(res.data);
-        return group;
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final data = res.data is Map ? Map<String, dynamic>.from(res.data as Map) : <String, dynamic>{};
+
+        return Group(
+          grupoId: (data['grupoId'] ?? groupId) as int,
+          nombreGrupo: (data['nombreGrupo'] ?? groupName) as String,
+          descripcion: (data['descripcion'] ?? descriptionGroup) as String,
+        );
       }
+
       return Group.empty();
     } catch (e) {
       print(e);

@@ -8,6 +8,7 @@ class CatalogNames {
   String get getKeyUserName => "username";
   String get getKeyAuthTypeName => "authtype";
   String get getKeyEmailName => "email";
+  String get getKeyUserUuidName => "userUuid";
 }
 
 final catalogNamesProvider = Provider<CatalogNames>((ref) {

@@ -7,7 +7,6 @@ import 'package:aprende_mas/views/views.dart';
 import 'package:aprende_mas/views/widgets/alerts/error_dialog.dart';
 import 'package:aprende_mas/config/data/db_local.dart';
 
-
 class FormLogin extends ConsumerStatefulWidget {
   const FormLogin({super.key});
 
@@ -45,7 +44,7 @@ class FormLoginState extends ConsumerState<FormLogin> {
       child: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
-          children: [ 
+          children: [
             CustomTextFormField(
               icon: SvgPicture.asset(
                 'assets/icons/email.svg',
@@ -64,8 +63,8 @@ class FormLoginState extends ConsumerState<FormLogin> {
             CustomTextFormField(
               icon: SvgPicture.asset(
                 'assets/icons/password1.svg',
-                width: 45,
-                height: 45,
+                width: 40,
+                height: 40,
                 color: const Color.fromARGB(255, 12, 129, 231),
               ),
               label: '  Contraseña',
@@ -109,7 +108,7 @@ class FormLoginState extends ConsumerState<FormLogin> {
                       fontWeight: FontWeight.bold,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(99),
                     ),
                   ),
                   onPressed: () async {
@@ -117,13 +116,16 @@ class FormLoginState extends ConsumerState<FormLogin> {
                       return;
                     }
                     // Validar campos vacíos
-                    if (loginFormNotifier.emailController.text.isEmpty || loginFormNotifier.passwordController.text.isEmpty) {
-                      ErrorDialog.show(context, message: "Por favor, ingrese correo y contraseña");
+                    if (loginFormNotifier.emailController.text.isEmpty ||
+                        loginFormNotifier.passwordController.text.isEmpty) {
+                      ErrorDialog.show(context,
+                          message: "Por favor, ingrese correo y contraseña");
                       return;
                     }
                     if (fcm.status == AuthorizationStatus.authorized) {
                       loginFormNotifier.onFormSubmit();
-                      await DbLocal.printUsuariosActivos(); // Depuración: muestra usuarios offline en consola
+                      await DbLocal
+                          .printUsuariosActivos(); // Depuración: muestra usuarios offline en consola
                       if (loginForm.isValid) {
                         hideSnackBar();
                         // showLoadingScreen(context);
@@ -140,7 +142,7 @@ class FormLoginState extends ConsumerState<FormLogin> {
               height: 18,
             ),
             // Botón temporal para depuración de usuarios offline
-           /* SizedBox(
+            /* SizedBox(
                 width: double.infinity,
                 height: MediaQuery.of(context).size.height * 0.080,
                 child: ElevatedButton(
@@ -176,9 +178,10 @@ class FormLoginState extends ConsumerState<FormLogin> {
                       fontWeight: FontWeight.bold,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(99),
                     ),
-                    side: BorderSide(color: const Color.fromARGB(255, 14, 155, 226)),
+                    side: BorderSide(
+                        color: const Color.fromARGB(255, 14, 155, 226)),
                   ),
                   onPressed: () {
                     loginFormNotifier.resetStateForm();
@@ -218,8 +221,9 @@ class FormLoginState extends ConsumerState<FormLogin> {
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
-                backgroundColor: const Color.fromARGB(255, 97, 1, 123),
-                foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                backgroundColor:
+                    const Color.from(alpha: 1, red: 1, green: 1, blue: 1),
+                foregroundColor: const Color.fromRGBO(0, 0, 0, 1),
                 textStyle: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
